@@ -13,7 +13,10 @@ export default function RouterButton({
 }) {
   const router = useRouter();
   return (
-    <button className="cursor-pointer" onClick={() => router.push(route)}>
+    <button
+      className={`${styles} cursor-pointer`}
+      onClick={() => router.push(route)}
+    >
       {title}
     </button>
   );

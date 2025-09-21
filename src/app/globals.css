@@ -2,6 +2,8 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --color-primary: #52a54c;
+  --color-muted-foreground: oklch(0.556 0 0);
 }
 
 body {
