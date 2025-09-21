@@ -46,8 +46,9 @@ export default function MarketplacePage() {
         }
       );
       return () => unsub();
-    } catch (e: any) {
-      setErr(e.message || "Failed to set up listener");
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Failed to set up listener";
+      setErr(errorMessage);
       setLoading(false);
     }
   }, []);

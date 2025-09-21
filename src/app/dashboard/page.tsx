@@ -47,10 +47,10 @@ export default function Dashboard() {
     setFormData((prev) => ({ ...prev, category: e.target.value }));
   };
 
-  const handleImagesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    setFormData((prev) => ({ ...prev, images: files }));
-  };
+  // const handleImagesChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const files = e.target.files ? Array.from(e.target.files) : [];
+  //   setFormData((prev) => ({ ...prev, images: files }));
+  // };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -81,8 +81,9 @@ export default function Dashboard() {
       }
       const data = (await res.json()) as { text: string };
       setAiText(data.text?.trim() || "");
-    } catch (err: any) {
-      setAiError(err.message || "Something went wrong");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      setAiError(errorMessage);
     } finally {
       setAiLoading(false);
     }
@@ -112,8 +113,9 @@ export default function Dashboard() {
 
       setAddedMsg("Product successfully added to marketplace!");
       console.log("Saved doc with id:", docRef.id);
-    } catch (err: any) {
-      setAiError(err.message || "Failed to add to marketplace");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to add to marketplace";
+      setAiError(errorMessage);
     }
   };
 

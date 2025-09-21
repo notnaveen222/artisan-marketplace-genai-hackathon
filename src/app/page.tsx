@@ -1,15 +1,15 @@
-'use client'
-import Hero3DScene from './Hero3DScene'
-import React, { useRef, useState, useEffect, Suspense } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
-import { OrbitControls, Float, Text3D, Center } from '@react-three/drei'
-import * as THREE from 'three'
-import { 
-  ArrowRight, 
-  Users, 
-  TrendingUp, 
-  Globe, 
+"use client";
+import Hero3DScene from "./Hero3DScene";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useRouter } from "next/navigation";
+// Removed unused 3D imports
+// Removed unused THREE import
+import {
+  ArrowRight,
+  Users,
+  TrendingUp,
+  Globe,
   Heart,
   Upload,
   Sparkles,
@@ -21,70 +21,10 @@ import {
   Twitter,
   Facebook,
   Mail,
-  Phone
-} from 'lucide-react'
+  Phone,
+} from "lucide-react";
 
-// 3D Pottery Component
-function FloatingPottery({ position = [0, 0, 0] }) {
-  const meshRef = useRef()
-  const [hovered, setHovered] = useState(false)
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.5
-      meshRef.current.position.y = Math.sin(state.clock.getElapsedTime()) * 0.3 + position[1]
-    }
-  })
-
-  return (
-    <Float speed={4} rotationIntensity={0.5} floatIntensity={1}>
-      <mesh
-        ref={meshRef}
-        position={position}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-        scale={hovered ? 1.2 : 1}
-      >
-        <cylinderGeometry args={[1, 1.5, 2, 32]} />
-        <meshStandardMaterial 
-          color={hovered ? '#f97316' : '#ea580c'}
-          roughness={0.3}
-          metalness={0.2}
-          emissive={'#ff6b00'}
-          emissiveIntensity={0.2}
-        />
-      </mesh>
-    </Float>
-  )
-}
-
-// 3D Fabric Component
-function FloatingFabric({ position = [0, 0, 0] }) {
-  const meshRef = useRef()
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.5) * 0.3
-      meshRef.current.rotation.z = Math.cos(state.clock.getElapsedTime() * 0.3) * 0.2
-    }
-  })
-
-  return (
-    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-      <mesh ref={meshRef} position={position}>
-        <planeGeometry args={[3, 4, 20, 20]} />
-        <meshStandardMaterial 
-          color={'#8b5cf6'}
-          side={THREE.DoubleSide}
-          roughness={0.8}
-          metalness={0.1}
-          emissive={'#8b5cf6'}
-          emissiveIntensity={0.1}
-        />
-      </mesh>
-    </Float>
-  )
-}
+// Removed unused 3D components
 
 // 3D Scene Component
 // function Hero3DScene() {
@@ -94,20 +34,20 @@ function FloatingFabric({ position = [0, 0, 0] }) {
 //         <ambientLight intensity={0.5} />
 //         <directionalLight position={[10, 10, 5]} intensity={1} />
 //         <pointLight position={[-10, -10, -5]} color={'#f97316'} intensity={0.5} />
-        
+
 //         <Suspense fallback={null}>
 //           <FloatingPottery position={[-4, 2, 0]} />
 //           <FloatingPottery position={[4, -2, -2]} />
 //           <FloatingFabric position={[0, 0, -3]} />
 //         </Suspense>
-        
-//         <OrbitControls 
-//           enableZoom={false} 
+
+//         <OrbitControls
+//           enableZoom={false}
 //           enablePan={false}
 //           autoRotate
 //           autoRotateSpeed={0.5}
 //         />
-        
+
 //         <mesh>
 //           <sphereGeometry args={[50, 32, 32]} />
 //           <meshBasicMaterial color={'#0a0a0a'} side={THREE.BackSide} />
@@ -118,45 +58,61 @@ function FloatingFabric({ position = [0, 0, 0] }) {
 // }
 
 // Animated Counter Component
-function AnimatedCounter({ end, suffix = '', prefix = '' }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true })
+function AnimatedCounter({
+  end,
+  suffix = "",
+  prefix = "",
+}: {
+  end: number;
+  suffix?: string;
+  prefix?: string;
+}) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
 
   useEffect(() => {
     if (isInView) {
-      let start = 0
+      let start = 0;
       const timer = setInterval(() => {
-        start += Math.ceil(end / 100)
+        start += Math.ceil(end / 100);
         if (start >= end) {
-          setCount(end)
-          clearInterval(timer)
+          setCount(end);
+          clearInterval(timer);
         } else {
-          setCount(start)
+          setCount(start);
         }
-      }, 30)
-      return () => clearInterval(timer)
+      }, 30);
+      return () => clearInterval(timer);
     }
-  }, [end, isInView])
+  }, [end, isInView]);
 
   return (
     <span ref={ref}>
-      {prefix}{count.toLocaleString()}{suffix}
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
     </span>
-  )
+  );
 }
 
 // Product Card Component with 3D Tilt
-function ProductCard({ product, index }) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isHovered, setIsHovered] = useState(false)
+function ProductCard({
+  product,
+  index,
+}: {
+  product: { emoji: string; title: string; artisan: string; price: string };
+  index: number;
+}) {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = (e.clientX - rect.left - rect.width / 2) / rect.width
-    const y = (e.clientY - rect.top - rect.height / 2) / rect.height
-    setMousePosition({ x, y })
-  }
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+    const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+    setMousePosition({ x, y });
+  };
 
   return (
     <motion.div
@@ -167,25 +123,29 @@ function ProductCard({ product, index }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
-        setIsHovered(false)
-        setMousePosition({ x: 0, y: 0 })
+        setIsHovered(false);
+        setMousePosition({ x: 0, y: 0 });
       }}
       style={{
         transform: isHovered
-          ? `perspective(1000px) rotateY(${mousePosition.x * 10}deg) rotateX(${-mousePosition.y * 10}deg) scale(1.05)`
-          : 'perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1)',
-        transition: 'transform 0.3s ease'
+          ? `perspective(1000px) rotateY(${mousePosition.x * 10}deg) rotateX(${
+              -mousePosition.y * 10
+            }deg) scale(1.05)`
+          : "perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1)",
+        transition: "transform 0.3s ease",
       }}
       className="relative group cursor-pointer"
     >
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-1">
         <div className="relative h-80 bg-gradient-to-br from-gray-900 via-purple-900/20 to-orange-900/20 rounded-xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-          
+
           <div className="relative h-full flex items-center justify-center">
             <div className="text-center p-6 z-20">
               <div className="text-6xl mb-4">{product.emoji}</div>
-              <h3 className="text-xl font-bold text-white mb-2">{product.title}</h3>
+              <h3 className="text-xl font-bold text-white mb-2">
+                {product.title}
+              </h3>
               <p className="text-gray-300 text-sm mb-2">{product.artisan}</p>
               <p className="text-orange-400 font-semibold">₹{product.price}</p>
               <div className="flex justify-center items-center mt-2 text-yellow-400">
@@ -196,44 +156,85 @@ function ProductCard({ product, index }) {
               </div>
             </div>
           </div>
-          
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
+
+          <motion.div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 export default function HomePage() {
-  const { scrollYProgress } = useScroll()
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const router = useRouter();
+  const { scrollYProgress } = useScroll();
+  // const y = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   // Sample product data
   const featuredProducts = [
-    { emoji: '🏺', title: 'Rajasthani Blue Pottery', artisan: 'Meera Devi', price: '2,450' },
-    { emoji: '🧣', title: 'Pashmina Shawl', artisan: 'Abdul Rashid', price: '8,900' },
-    { emoji: '📿', title: 'Kundan Jewelry Set', artisan: 'Lakshmi Iyer', price: '12,500' },
-    { emoji: '🪔', title: 'Brass Diya Collection', artisan: 'Ravi Kumar', price: '1,850' },
-    { emoji: '🎨', title: 'Madhubani Painting', artisan: 'Sita Sharma', price: '4,200' },
-    { emoji: '🪵', title: 'Sandalwood Carving', artisan: 'Krishna Rao', price: '6,750' }
-  ]
+    {
+      emoji: "🏺",
+      title: "Rajasthani Blue Pottery",
+      artisan: "Meera Devi",
+      price: "2,450",
+    },
+    {
+      emoji: "🧣",
+      title: "Pashmina Shawl",
+      artisan: "Abdul Rashid",
+      price: "8,900",
+    },
+    {
+      emoji: "📿",
+      title: "Kundan Jewelry Set",
+      artisan: "Lakshmi Iyer",
+      price: "12,500",
+    },
+    {
+      emoji: "🪔",
+      title: "Brass Diya Collection",
+      artisan: "Ravi Kumar",
+      price: "1,850",
+    },
+    {
+      emoji: "🎨",
+      title: "Madhubani Painting",
+      artisan: "Sita Sharma",
+      price: "4,200",
+    },
+    {
+      emoji: "🪵",
+      title: "Sandalwood Carving",
+      artisan: "Krishna Rao",
+      price: "6,750",
+    },
+  ];
 
   const steps = [
-    { icon: <Upload />, title: 'Artisan Uploads', desc: 'Simple photo & details in local language' },
-    { icon: <Sparkles />, title: 'AI Enhancement', desc: 'Auto-generates stories & descriptions' },
-    { icon: <ShoppingBag />, title: 'Direct Sales', desc: 'Customers buy authentic crafts globally' }
-  ]
+    {
+      icon: <Upload />,
+      title: "Artisan Uploads",
+      desc: "Simple photo & details in local language",
+    },
+    {
+      icon: <Sparkles />,
+      title: "AI Enhancement",
+      desc: "Auto-generates stories & descriptions",
+    },
+    {
+      icon: <ShoppingBag />,
+      title: "Direct Sales",
+      desc: "Customers buy authentic crafts globally",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Hero Section with 3D Background */}
       <section className="relative min-h-screen flex items-center justify-center">
         <Hero3DScene />
-        
-        <motion.div 
+
+        <motion.div
           style={{ opacity }}
           className="relative z-10 text-center px-6 max-w-6xl mx-auto"
         >
@@ -254,7 +255,8 @@ export default function HomePage() {
             className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text text-transparent"
           >
             Empowering Artisans
-            <br />with AI
+            <br />
+            with AI
           </motion.h1>
 
           <motion.p
@@ -263,8 +265,8 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto"
           >
-            Discover authentic handmade crafts, enhanced by AI storytelling, 
-            and directly support artisans worldwide.
+            Discover authentic handmade crafts, enhanced by AI storytelling, and
+            directly support artisans worldwide.
           </motion.p>
 
           <motion.div
@@ -273,11 +275,17 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <button className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full font-semibold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 group">
+            <button
+              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full font-semibold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 group"
+              onClick={() => router.push("/marketplace")}
+            >
               Explore Marketplace
               <ArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full font-semibold text-lg hover:bg-white/20 transition-colors">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full font-semibold text-lg hover:bg-white/20 transition-colors"
+            >
               Join as Artisan
             </button>
           </motion.div>
@@ -304,7 +312,9 @@ export default function HomePage() {
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-purple-600 bg-clip-text text-transparent">
               How It Works
             </h2>
-            <p className="text-xl text-gray-400">Simple steps to global reach</p>
+            <p className="text-xl text-gray-400">
+              Simple steps to global reach
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -323,7 +333,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
                   <p className="text-gray-400">{step.desc}</p>
-                  
+
                   {index < steps.length - 1 && (
                     <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
                       <ArrowRight className="text-orange-500" size={24} />
@@ -348,7 +358,9 @@ export default function HomePage() {
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-purple-600 bg-clip-text text-transparent">
               Featured Crafts
             </h2>
-            <p className="text-xl text-gray-400">Authentic handmade treasures from skilled artisans</p>
+            <p className="text-xl text-gray-400">
+              Authentic handmade treasures from skilled artisans
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -362,7 +374,7 @@ export default function HomePage() {
       {/* Impact Section */}
       <section className="py-24 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/10 to-purple-600/10" />
-        
+
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0 }}
@@ -373,15 +385,37 @@ export default function HomePage() {
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-purple-600 bg-clip-text text-transparent">
               Our Impact
             </h2>
-            <p className="text-xl text-gray-400">Transforming lives through technology</p>
+            <p className="text-xl text-gray-400">
+              Transforming lives through technology
+            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { number: 5000, suffix: '+', label: 'Artisans Onboarded', icon: <Users /> },
-              { number: 5, suffix: 'x', label: 'Income Growth', icon: <TrendingUp /> },
-              { number: 20, suffix: '%', label: 'Global Demand Rise', icon: <Globe /> },
-              { number: 95, suffix: '%', label: 'Customer Satisfaction', icon: <Heart /> }
+              {
+                number: 5000,
+                suffix: "+",
+                label: "Artisans Onboarded",
+                icon: <Users />,
+              },
+              {
+                number: 5,
+                suffix: "x",
+                label: "Income Growth",
+                icon: <TrendingUp />,
+              },
+              {
+                number: 20,
+                suffix: "%",
+                label: "Global Demand Rise",
+                icon: <Globe />,
+              },
+              {
+                number: 95,
+                suffix: "%",
+                label: "Customer Satisfaction",
+                icon: <Heart />,
+              },
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -421,22 +455,28 @@ export default function HomePage() {
               </h2>
               <div className="prose prose-invert prose-lg">
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  For three generations, Priya&apos;s family has been creating exquisite block-print textiles 
-                  using traditional Rajasthani techniques. Each piece tells a story of heritage, 
-                  with hand-carved wooden blocks and natural indigo dyes.
+                  For three generations, Priya&apos;s family has been creating
+                  exquisite block-print textiles using traditional Rajasthani
+                  techniques. Each piece tells a story of heritage, with
+                  hand-carved wooden blocks and natural indigo dyes.
                 </p>
                 <p className="text-gray-300 leading-relaxed mb-4">
-                  Before joining our platform, Priya sold 10 bedspreads monthly at ₹500 each. 
-                  Now, with AI-enhanced descriptions and global reach, she sells 50 pieces at ₹1,200 each - 
-                  a <span className="text-orange-400 font-semibold">12x increase</span> in income.
+                  Before joining our platform, Priya sold 10 bedspreads monthly
+                  at ₹500 each. Now, with AI-enhanced descriptions and global
+                  reach, she sells 50 pieces at ₹1,200 each - a{" "}
+                  <span className="text-orange-400 font-semibold">
+                    12x increase
+                  </span>{" "}
+                  in income.
                 </p>
                 <p className="text-gray-300 leading-relaxed">
-                  &quot;The AI captures the soul of my craft in words I could never express. 
-                  Customers from Paris to New York now appreciate not just my products, 
-                  but our 300-year-old heritage,&quot; says Priya.
+                  &quot;The AI captures the soul of my craft in words I could
+                  never express. Customers from Paris to New York now appreciate
+                  not just my products, but our 300-year-old heritage,&quot;
+                  says Priya.
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-4 mt-8">
                 <MapPin className="text-orange-400" />
                 <span className="text-gray-400">Jaipur, Rajasthan</span>
@@ -450,8 +490,12 @@ export default function HomePage() {
               <div className="h-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-8xl mb-4">🎨</div>
-                  <p className="text-xl font-semibold text-gray-300">Traditional Block Printing</p>
-                  <p className="text-sm text-gray-500 mt-2">300 years of heritage</p>
+                  <p className="text-xl font-semibold text-gray-300">
+                    Traditional Block Printing
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    300 years of heritage
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -471,7 +515,9 @@ export default function HomePage() {
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-purple-600 bg-clip-text text-transparent">
               Global Community
             </h2>
-            <p className="text-xl text-gray-400">Connecting artisans with customers worldwide</p>
+            <p className="text-xl text-gray-400">
+              Connecting artisans with customers worldwide
+            </p>
           </motion.div>
 
           <motion.div
@@ -483,10 +529,17 @@ export default function HomePage() {
             <div className="absolute inset-0 flex items-center justify-center">
               <Globe className="w-48 h-48 text-orange-500/20" />
             </div>
-            
+
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="grid grid-cols-3 gap-8 p-8">
-                {['🇮🇳 India', '🇺🇸 USA', '🇬🇧 UK', '🇫🇷 France', '🇩🇪 Germany', '🇯🇵 Japan'].map((country, i) => (
+                {[
+                  "🇮🇳 India",
+                  "🇺🇸 USA",
+                  "🇬🇧 UK",
+                  "🇫🇷 France",
+                  "🇩🇪 Germany",
+                  "🇯🇵 Japan",
+                ].map((country, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0 }}
@@ -494,8 +547,10 @@ export default function HomePage() {
                     transition={{ delay: i * 0.2 }}
                     className="text-center"
                   >
-                    <div className="text-2xl mb-2">{country.split(' ')[0]}</div>
-                    <p className="text-xs text-gray-400">{country.split(' ')[1]}</p>
+                    <div className="text-2xl mb-2">{country.split(" ")[0]}</div>
+                    <p className="text-xs text-gray-400">
+                      {country.split(" ")[1]}
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -518,7 +573,8 @@ export default function HomePage() {
                 Ready to Make a Difference?
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Join thousands of artisans and customers creating a sustainable future for traditional crafts
+                Join thousands of artisans and customers creating a sustainable
+                future for traditional crafts
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button className="px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full font-semibold text-lg hover:scale-105 transition-transform">
@@ -545,40 +601,108 @@ export default function HomePage() {
                 Empowering traditional artisans through AI technology
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-orange-400 transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">Marketplace</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">For Artisans</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">Success Stories</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    Marketplace
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    For Artisans
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    Success Stories
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-orange-400 transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">FAQs</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition-colors">Terms & Privacy</a></li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    FAQs
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-orange-400 transition-colors"
+                  >
+                    Terms & Privacy
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4">Connect</h4>
               <div className="flex gap-4 mb-4">
-                <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-orange-400 transition-colors"
+                >
                   <Instagram size={20} />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-orange-400 transition-colors"
+                >
                   <Twitter size={20} />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-orange-400 transition-colors"
+                >
                   <Facebook size={20} />
                 </a>
-                <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-orange-400 transition-colors"
+                >
                   <Mail size={20} />
                 </a>
               </div>
@@ -592,12 +716,14 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 ArtisanAI. All rights reserved. Made with ❤️ in India</p>
+            <p>
+              &copy; 2025 ArtisanAI. All rights reserved. Made with ❤️ in India
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

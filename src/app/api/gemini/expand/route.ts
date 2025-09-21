@@ -53,12 +53,13 @@ Write:
     const data = await res.json();
     const text =
       data?.candidates?.[0]?.content?.parts
-        ?.map((p: any) => p?.text || "")
+        ?.map((p: { text?: string }) => p?.text || "")
         .join("\n")
         .trim() || "";
 
     return NextResponse.json({ text });
-  } catch (e: any) {
-    return new NextResponse(e?.message || "Server error", { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : "Server error";
+    return new NextResponse(errorMessage, { status: 500 });
   }
 }
