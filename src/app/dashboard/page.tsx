@@ -1,13 +1,15 @@
 "use client";
 import { Package, Sparkles } from "lucide-react";
 import { useState, ChangeEvent, FormEvent } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import ReactMarkdown from "react-markdown";
 
 type FormDataState = {
   name: string;
   category: string;
   price: string;
   description: string;
-  dimensions: string;
   images: File[];
 };
 
@@ -17,9 +19,13 @@ export default function Dashboard() {
     category: "",
     price: "",
     description: "",
-    dimensions: "",
     images: [],
   });
+
+  const [aiText, setAiText] = useState<string>("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [addedMsg, setAddedMsg] = useState<string | null>(null);
 
   const categories = [
     "Jewelry & Accessories",
@@ -48,8 +54,67 @@ export default function Dashboard() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // do your submit logic here
     console.log(formData);
+  };
+
+  const generateAI = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    setAddedMsg(null);
+    setAiText("");
+
+    try {
+      const res = await fetch("/api/gemini/expand", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          price: formData.price,
+          description: formData.description,
+        }),
+      });
+
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || "Failed to generate");
+      }
+      const data = (await res.json()) as { text: string };
+      setAiText(data.text?.trim() || "");
+    } catch (err: any) {
+      setAiError(err.message || "Something went wrong");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const addToMarketplace = async () => {
+    setAddedMsg(null);
+    setAiError(null);
+
+    if (!formData.name || !formData.category || !formData.price) {
+      setAiError("Please fill name, category, and price first.");
+      return;
+    }
+    if (!aiText) {
+      setAiError("Generate AI content before adding to marketplace.");
+      return;
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "products"), {
+        name: formData.name,
+        category: formData.category,
+        price: Number(formData.price),
+        aiDescription: aiText,
+        createdAt: serverTimestamp(),
+      });
+
+      setAddedMsg("Product successfully added to marketplace!");
+      console.log("Saved doc with id:", docRef.id);
+    } catch (err: any) {
+      setAiError(err.message || "Failed to add to marketplace");
+    }
   };
 
   return (
@@ -81,7 +146,6 @@ export default function Dashboard() {
             Tell us about your handcrafted creation
           </div>
 
-          {/* Product Name */}
           <div className="space-y-2 mb-4">
             <label htmlFor="name" className="block text-sm font-medium">
               Product Name <span className="text-red-500">*</span>
@@ -95,7 +159,6 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Category */}
           <div className="space-y-2 mb-4">
             <label htmlFor="category" className="block text-sm font-medium">
               Category <span className="text-red-500">*</span>
@@ -104,9 +167,9 @@ export default function Dashboard() {
               id="category"
               value={formData.category}
               onChange={handleSelectChange}
-              className="w-full  rounded-md border border-gray-300 px-3 py-2 text-base  focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-base bg-white focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              <option value="" className="" disabled>
+              <option value="" disabled>
                 Choose a category
               </option>
               {categories.map((c) => (
@@ -117,37 +180,21 @@ export default function Dashboard() {
             </select>
           </div>
 
-          {/* Price */}
           <div className="space-y-2 mb-4">
             <label htmlFor="price" className="block text-sm font-medium">
-              Price
+              Price ($)
             </label>
             <input
               id="price"
               type="number"
               inputMode="decimal"
-              placeholder="Enter Price"
+              placeholder="Enter price"
               value={formData.price}
               onChange={handleChange("price")}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
 
-          {/* Materials */}
-          <div className="space-y-2 mb-4">
-            <label htmlFor="materials" className="block text-sm font-medium">
-              Materials
-            </label>
-            <input
-              id="materials"
-              placeholder="e.g., Cotton rope, wooden dowel"
-              value={formData.materials}
-              onChange={handleChange("materials")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-          </div>
-
-          {/* Description */}
           <div className="space-y-2">
             <label htmlFor="description" className="block text-sm font-medium">
               Basic Description <span className="text-red-500">*</span>
@@ -161,44 +208,67 @@ export default function Dashboard() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={generateAI}
+            disabled={aiLoading}
+            className="mt-6 w-full rounded-lg bg-primary text-white px-4 py-2 font-medium  hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/40 inline-flex items-center justify-center gap-2"
+          >
+            <Sparkles className=" text-white w-4 h-4" />
+            {aiLoading ? "Generating..." : "Generate AI Content"}
+          </button>
         </div>
 
-        {/* Right column: Images + Submit */}
         <div className="border col-span-1 border-gray-200 p-5 rounded-xl shadow-md h-fit">
-          <div className="flex font-semibold items-center gap-2 mb-1">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Media & Actions
-          </div>
-          <div className="text-muted-foreground font-medium text-[15px] mb-4">
-            Add product photos and publish
-          </div>
+          <div className="text-xl font-semibold mb-4">AI-Generated Content</div>
 
-          {/* Images */}
-          <div className="space-y-2 mb-6">
-            <label htmlFor="images" className="block text-sm font-medium">
-              Images
-            </label>
-            <input
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImagesChange}
-              className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:text-primary file:px-3 file:py-2 hover:file:bg-primary/20"
-            />
-            {formData.images.length > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {formData.images.length} file(s) selected
+          <div
+            className={`rounded-xl px-4 py-5 mb-4 ${
+              addedMsg
+                ? " border-2  border-emerald-700/40"
+                : "bg-muted/20 border border-muted/30"
+            }`}
+          >
+            {!aiText && !aiError && !addedMsg && (
+              <p className="text-muted-foreground">
+                Fill out the product form and click{" "}
+                <b>&quot;Generate AI Content&quot;</b> to see AI-powered
+                descriptions and stories.
               </p>
+            )}
+
+            {aiError && <p className="text-red-500">{aiError}</p>}
+
+            {addedMsg && (
+              <div className="flex items-center justify-between">
+                <p className="text-emerald-500 font-medium"> {addedMsg}</p>
+                <button
+                  type="button"
+                  className="rounded-md bg-white/10 px-3 py-1 text-sm border cursor-pointer border-emerald-600/40 hover:bg-white/20"
+                >
+                  View in Marketplace
+                </button>
+              </div>
+            )}
+
+            {aiText && !addedMsg && (
+              <div className="prose prose-sm text-foreground">
+                <ReactMarkdown>{aiText}</ReactMarkdown>
+              </div>
             )}
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-primary text-primary-foreground px-4 py-2 font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
-            Save Product
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={addToMarketplace}
+              disabled={!aiText}
+              className="inline-flex items-center gap-2 rounded-md bg-primary text-white px-4 py-2 text-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-teal-400/50 disabled:opacity-60 cursor-pointer"
+            >
+              Add to Marketplace
+            </button>
+          </div>
         </div>
       </form>
     </div>
